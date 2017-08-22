@@ -90,11 +90,18 @@ run.metrics = function(vector.of.false.positive.rates, vector.of.false.negative.
         #   gest = as.matrix.network.adjacency(gest)
         # }
         
+        ############## THOMAS, MY CONERNS AS ABOUT THIS SECTION ##########################
+        #Finding the position of all the arcs which do (F.neg.which) and do not (F.neg.which) exist:
         F.pos.which = which(gest == 0)
         F.neg.which = which(gest == 1)
         
+        #Finding the length of these vectors:
         F.pos.which.length = length(F.pos.which)
         F.neg.which.length = length(F.neg.which)
+        
+        #Density will never reach 0 or 1 as we are only changing n% of the arcs that are 0 or 1.
+        #Taking ceiling as sample by default takes floor which means that when we get values 0<x<1 we try sample 0,
+        #This means that we will never sample 0. Not sure if this is an issue. I think it might be.
         
         F.pos.arcs = sample(F.pos.which, ceiling(F.pos.rate*F.pos.which.length))
         F.neg.arcs = sample(F.neg.which, ceiling(F.neg.rate*F.neg.which.length))
@@ -105,8 +112,6 @@ run.metrics = function(vector.of.false.positive.rates, vector.of.false.negative.
         
         gest = as.network.matrix(gest)
         
-        #Density will never reach 0 or 1 as we are only changing n% of the arcs that are 0 or 1.
-        #Taking ceiling as sample by default takes floor which means that when we get values 0<x<1 we try sample 0
       }
       save(record, file = paste(data.set.name, F.pos.rate, F.neg.rate, sep = "_"))
     }

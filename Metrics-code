@@ -16,8 +16,8 @@ num.iters = 1000
 F.pos.vec = c(0.01, 0.05, 0.1, 0.15, 0.2)
 F.neg.vec = c(0.01, 0.05, 0.1, 0.15, 0.2)
 
-#start of loop
-run.metrics = function(vector.of.false.positive.rates, vector.of.false.negative.rates, number.iterations, graph, data.set.name){
+#Start function:
+run.metrics = function(vector.of.false.positive.rates, vector.of.false.negative.rates, number.iterations, graph, data.set.name, size){
   record = list(density.rec = list(), 
                 distance.rec = list(), 
                 degree.dist.rec = list(), 
@@ -45,34 +45,38 @@ run.metrics = function(vector.of.false.positive.rates, vector.of.false.negative.
         ##################### Igraph metrics:
         
         #Density:
-        record$density.rec[i] = igraph::edge_density(gest)
+        record$density.rec[i] = tryCatch(igraph::edge_density(gest), error = function(e) NA)
         #Distance:
-        record$distance.rec[[i]] = igraph::distances(gest)
+        record$distance.rec[[i]] = tryCatch(igraph::distances(gest), error = function(e) NA)
         #Degree distribution:
-        record$degree.dist.rec[[i]] = igraph::degree.distribution(gest, mode = "total")
+        record$degree.dist.rec[[i]] = tryCatch(igraph::degree.distribution(gest, mode = "total"), error = function(e) NA)
         #Kleinberg's authority centrality score
-        record$klein.auth.rec[[i]] = igraph::authority.score(gest)
+        record$klein.auth.rec[[i]] = tryCatch(igraph::authority.score(gest), error = function(e) NA)
         #Edge connectivity
-        record$edge.con.rec[[i]] = igraph::edge_connectivity(gest)
+        record$edge.con.rec[[i]] = tryCatch(igraph::edge_connectivity(gest), error = function(e) NA)
         
         ####################### SNA metrics:
         
         #Transformation function to change from igraph to sna:
         gest = intergraph::asNetwork(gest)
         #Degree centrality:
-        record$degree.rec[[i]] = sna::degree(gest, gmode = "graph")
+        record$degree.rec[[i]] = tryCatch(sna::degree(gest, gmode = "graph"), error = function(e) NA)
         #Closeness Centrality:
-        record$closeness.rec[[i]] = sna::closeness(gest, gmode = "graph")
+        record$closeness.rec[[i]] = tryCatch(sna::closeness(gest, gmode = "graph"), error = function(e) NA)
         #Betweenness Centrality:
-        record$betweenness.rec[[i]] = sna::betweenness(gest, gmode = "graph")
+        record$betweenness.rec[[i]] = tryCatch(sna::betweenness(gest, gmode = "graph"), error = function(e) NA)
         #Eigenvector centrality:
-        record$eigen.cent.rec[[i]] = sna::evcent(gest, gmode = "graph")
+        record$eigen.cent.rec[[i]] = tryCatch(sna::evcent(gest, gmode = "graph"), error = function(e) NA)
         #Gil-Schmidt Power index:
-        record$gil.sch.rec[[i]] = sna::gilschmidt(gest, gmode = "graph")
+        record$gil.sch.rec[[i]] = tryCatch(sna::gilschmidt(gest, gmode = "graph"), error = function(e) NA)
         #Information Centrality:
-        record$info.cent.rec[[i]] = sna::infocent(gest, gmode = "graph")
+        record$info.cent.rec[[i]] = tryCatch(sna::infocent(gest, gmode = "graph"), error = function(e) NA)
         #Load Centrality:
-        record$load.rec[[i]] = sna::loadcent(gest, gmode = "graph")
+        record$load.rec[[i]] = tryCatch(sna::loadcent(gest, gmode = "graph"), error = function(e) NA)
+        
+        #Bonacinch Power Centrality:
+        record$bonacich.rec[[i]] = tryCatch(sna::bonpow(gest, gmode = "graph", tol = 1e-07), error = function(e) NA)
+        
         
         #Method of applying false positives or negatives: (if a function, should be defined outside the loop.) 
         #(depending on if igraph or sna has a better method determines where this goes)
@@ -81,27 +85,13 @@ run.metrics = function(vector.of.false.positive.rates, vector.of.false.negative.
         #false.neg.rate is the rate at which false positive occur. Meaning arcs which go from 1 to 0
         #Sample already takes the floor of the number of values we want so no concern for non-integer values.
         
-        #Bonacinch Power Centrality:
-        #Bonacinch power formula requires the matrix to be non-singular.
         gest = as.matrix.network.adjacency(gest)
-        # if (det(gest) < 1e-6 || det(gest) > -1e-6){
-        #   gest = as.network.matrix(gest)
-        #   record$bonacich.rec[[i]] = sna::bonpow(gest, gmode = "graph", tol = 1e-07)
-        #   gest = as.matrix.network.adjacency(gest)
-        # }
-        
-        ############## THOMAS, MY CONERNS AS ABOUT THIS SECTION ##########################
-        #Finding the position of all the arcs which do (F.neg.which) and do not (F.neg.which) exist:
+
         F.pos.which = which(gest == 0)
         F.neg.which = which(gest == 1)
         
-        #Finding the length of these vectors:
         F.pos.which.length = length(F.pos.which)
         F.neg.which.length = length(F.neg.which)
-        
-        #Density will never reach 0 or 1 as we are only changing n% of the arcs that are 0 or 1.
-        #Taking ceiling as sample by default takes floor which means that when we get values 0<x<1 we try sample 0,
-        #This means that we will never sample 0. Not sure if this is an issue. I think it might be.
         
         F.pos.arcs = sample(F.pos.which, ceiling(F.pos.rate*F.pos.which.length))
         F.neg.arcs = sample(F.neg.which, ceiling(F.neg.rate*F.neg.which.length))
@@ -112,8 +102,10 @@ run.metrics = function(vector.of.false.positive.rates, vector.of.false.negative.
         
         gest = as.network.matrix(gest)
         
+        #Density will never reach 0 or 1 as we are only changing n% of the arcs that are 0 or 1.
+        #Taking ceiling as sample by default takes floor which means that when we get values 0<x<1 we try sample 0
       }
-      save(record, file = paste(data.set.name, F.pos.rate, F.neg.rate, sep = "_"))
+      save(record, file = paste(data.set.name, size, F.pos.rate, F.neg.rate, sep = "_"))
     }
   }
 }

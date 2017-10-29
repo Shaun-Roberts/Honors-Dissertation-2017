@@ -21,4 +21,4 @@ The file named in the fashion "Individual_Metric_Plots.R" relate to the plots fo
 
 "model_generation_code.R" is the code used to generate the models we used for the simulations. The models produced by you will not match those layed out in my dissertation but will be close.
 
-"simulation.R" is the code used to simulate the datasets.
+"Simulation Code.R" is the code used to simulate the datasets.

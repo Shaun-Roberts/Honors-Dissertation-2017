@@ -10,3 +10,8 @@ The file named in the fashion "Individual_Metric_Plots.R" relate to the plots fo
 "family plot.R" is the code to generate the star and friends plots
 
 "CentralitiesPlot.R" is the code to make the centralities plot with nodes A through M in the definitions section.
+
+"benchmarkplots.R" is the code to make the benchmarking plots.
+
+"benchmark.R" is the code to do the benchmarks.
+

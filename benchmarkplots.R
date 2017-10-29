@@ -8,7 +8,7 @@ load("H:/benchmark0.5")
 bench0.5 = times
 
 
-sizes = c(30, 100, 250, 500, 750, 1000)
+sizes = c(30, 100, 250, 500, 750, 1000, 2500)
 
 #distance
 benchmark.distance = function(x.vals = sizes){

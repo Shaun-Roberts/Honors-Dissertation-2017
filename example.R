@@ -67,5 +67,6 @@ example = function(ylimits = c(0,100), step_size = 25){
 }
 example()
 pdf("example_plots.pdf")
+par(mar = c(2,4,3,3))
 example()
 dev.off()
